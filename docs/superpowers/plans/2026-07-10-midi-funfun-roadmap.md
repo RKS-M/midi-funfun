@@ -8,7 +8,7 @@
 
 | # | マイルストーン | 状態 | 詳細計画 |
 |---|---|---|---|
-| 0 | 雛形(.gitignore・CMake・空Processor/Editor・Testsターゲット) | 計画作成済み | [2026-07-10-midi-funfun-00-scaffold.md](2026-07-10-midi-funfun-00-scaffold.md) |
+| 0 | 雛形(.gitignore・CMake・空Processor/Editor・Testsターゲット) | 完了(コミット 3663d59) | [2026-07-10-midi-funfun-00-scaffold.md](2026-07-10-midi-funfun-00-scaffold.md) |
 | 1 | 録音(マイク入力・レベルメーター・BPM/メトロノーム・テイク管理・上限) | 未着手 | 着手時に作成 |
 | 2 | ピッチ検出(YIN)・ノート化(ノイズゲート・最小長・オクターブ補正) | 未着手 | 着手時に作成 |
 | 3 | ピアノロール(編集・選択・Undo/Redo・波形/ピッチカーブ・プレビュー再生) | 未着手 | 着手時に作成 |

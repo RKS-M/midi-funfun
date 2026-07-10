@@ -1,0 +1,22 @@
+# Build output (CMakeのout-of-sourceビルド先。FetchContentで取得したJUCE/Catch2本体もこの中に入る)
+/build/
+/out/
+cmake-build-*/
+
+# CMakeが誤ってソース直下に生成した場合の安全策
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+_deps/
+
+# Visual Studio
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.user
+
+# macOS(将来のmacOS移植時用)
+.DS_Store

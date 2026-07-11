@@ -1,6 +1,15 @@
 add_library(midi_funfun_core STATIC
     Version.h
     Version.cpp
+    Audio/PeakLevelTracker.h
+    Audio/PeakLevelTracker.cpp
+    Audio/Take.h
+    Audio/TakeManager.h
+    Audio/TakeManager.cpp
+    Audio/Metronome.h
+    Audio/Metronome.cpp
+    Audio/RecordingTransport.h
+    Audio/RecordingTransport.cpp
 )
 
 target_include_directories(midi_funfun_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

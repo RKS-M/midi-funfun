@@ -1,5 +1,9 @@
 add_executable(MidiFunfunTests
     CoreVersionTests.cpp
+    PeakLevelTrackerTests.cpp
+    TakeManagerTests.cpp
+    MetronomeTests.cpp
+    RecordingTransportTests.cpp
 )
 
 target_link_libraries(MidiFunfunTests PRIVATE

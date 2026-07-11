@@ -259,6 +259,7 @@ void MidiFunfunAudioProcessorEditor::timerCallback()
     updateRecordButtonAppearance();
 
     takeListBox.updateContent();
+    takeListBox.repaint();
 
     const int selected = processorRef.getTakeManager().getSelectedTakeIndex();
     if (selected != takeListBox.getSelectedRow())

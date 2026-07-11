@@ -13,6 +13,7 @@ add_library(midi_funfun_core STATIC
     Model/Note.h
     Model/NoteSequence.h
     Model/NoteSequence.cpp
+    Model/NoteFormatting.h
     Pitch/YinPitchDetector.h
     Pitch/YinPitchDetector.cpp
     Pitch/NoteSegmenter.h
@@ -21,6 +22,7 @@ add_library(midi_funfun_core STATIC
     Pitch/OctaveErrorCorrector.cpp
     Pitch/PitchAnalyzer.h
     Pitch/PitchAnalyzer.cpp
+    Pitch/NoiseGateMapping.h
 )
 
 target_include_directories(midi_funfun_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

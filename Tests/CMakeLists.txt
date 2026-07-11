@@ -10,6 +10,8 @@ add_executable(MidiFunfunTests
     NoteSegmenterTests.cpp
     OctaveErrorCorrectorTests.cpp
     PitchAnalyzerTests.cpp
+    NoteFormattingTests.cpp
+    NoiseGateMappingTests.cpp
 )
 
 target_link_libraries(MidiFunfunTests PRIVATE

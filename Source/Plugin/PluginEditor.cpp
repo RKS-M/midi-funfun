@@ -38,8 +38,7 @@ void MidiFunfunAudioProcessorEditor::NoteListBoxModel::paintListBoxItem(int rowN
     const double startSeconds = ticksToSeconds(note.startTick, bpm);
     const double lengthSeconds = ticksToSeconds(note.lengthTicks, bpm);
 
-    const auto pitchName = juce::MidiMessage::getMidiNoteName(note.pitch, true, true, 4);
-    const auto text = juce::String::formatted("%-4s %6.2fs %6.2fs", pitchName.toRawUTF8(), startSeconds, lengthSeconds);
+    const auto text = midi_funfun::core::formatNoteListRow(note.pitch, startSeconds, lengthSeconds);
 
     g.setColour(juce::Colours::black);
     g.drawText(text, 4, 0, width - 8, height, juce::Justification::centredLeft);
@@ -158,6 +157,10 @@ MidiFunfunAudioProcessorEditor::MidiFunfunAudioProcessorEditor(MidiFunfunAudioPr
     noteListBox.setRowHeight(20);
     addAndMakeVisible(noteListBox);
 
+    analysisStatusLabel.setJustificationType(juce::Justification::centredLeft);
+    analysisStatusLabel.setColour(juce::Label::textColourId, juce::Colours::darkred);
+    addAndMakeVisible(analysisStatusLabel);
+
 #if JucePlugin_Build_Standalone
     // JUCEのStandaloneラッパーは入出力チャンネルを持つプロセッサ(=フィードバックの可能性)を
     // 検出すると入力を既定でミュートする安全機能を持つ。モニタリングは既定OFFで
@@ -224,6 +227,7 @@ void MidiFunfunAudioProcessorEditor::resized()
     takesArea.removeFromBottom(6);
     takeListBox.setBounds(takesArea);
 
+    analysisStatusLabel.setBounds(notesArea.removeFromTop(20));
     noteListBox.setBounds(notesArea);
 }
 
@@ -295,6 +299,11 @@ void MidiFunfunAudioProcessorEditor::analyzeButtonClicked()
     processorRef.analyzeSelectedTake();
     noteListBox.updateContent();
     noteListBox.repaint();
+
+    analysisStatusLabel.setText(processorRef.getAnalyzedNotes().size() == 0
+                                     ? "ノートが検出されませんでした(Noise Gateを下げて再度お試しください)"
+                                     : "",
+                                 juce::dontSendNotification);
 }
 
 void MidiFunfunAudioProcessorEditor::settingsButtonClicked()

@@ -116,10 +116,8 @@ void MidiFunfunAudioProcessor::analyzeSelectedTake()
         return;
 
     midi_funfun::core::PitchAnalyzer::Settings settings;
-    // ノイズゲート感度(0-100%)をRMSしきい値へ線形マッピングする。
-    // 0%->0.0(ゲートしない)、100%->0.2(YinPitchDetectorのRMSは概ね0-1程度のオーディオ
-    // 振幅を想定しており、0.2は十分強いゲート)。
-    settings.segmenter.noiseGateRmsThreshold = (noiseGateSensitivity.load(std::memory_order_relaxed) / 100.0) * 0.2;
+    settings.segmenter.noiseGateRmsThreshold =
+        midi_funfun::core::noiseGateSensitivityPercentToThreshold(noiseGateSensitivity.load(std::memory_order_relaxed));
     settings.segmenter.minNoteLengthSeconds = minNoteLengthMs.load(std::memory_order_relaxed) / 1000.0;
     settings.bpm = bpm.load(std::memory_order_relaxed);
     settings.defaultVelocity = defaultVelocity.load(std::memory_order_relaxed);

@@ -4,6 +4,7 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 
 #include "Audio/PeakLevelTracker.h"
+#include "Model/NoteFormatting.h"
 #include "Model/NoteSequence.h"
 #include "PluginProcessor.h"
 
@@ -86,6 +87,9 @@ private:
 
     juce::Label defaultVelocityLabel;
     juce::Slider defaultVelocitySlider;
+
+    /** 解析結果が0件だったときのフィードバック用(それ以外は非表示)。 */
+    juce::Label analysisStatusLabel;
 
     NoteListBoxModel noteListBoxModel { processorRef };
     juce::ListBox noteListBox { "Notes", &noteListBoxModel };

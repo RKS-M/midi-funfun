@@ -9,6 +9,7 @@
 #include "Audio/RecordingTransport.h"
 #include "Audio/TakeManager.h"
 #include "Model/NoteSequence.h"
+#include "Pitch/NoiseGateMapping.h"
 #include "Pitch/PitchAnalyzer.h"
 
 class MidiFunfunAudioProcessor final : public juce::AudioProcessor
@@ -90,7 +91,7 @@ private:
     std::atomic<int> countInBeats { 4 };
     std::atomic<bool> monitoringEnabled { false };
 
-    std::atomic<double> noiseGateSensitivity { 50.0 }; // 0-100%
+    std::atomic<double> noiseGateSensitivity { midi_funfun::core::defaultNoiseGateSensitivityPercent }; // 0-100%
     std::atomic<double> minNoteLengthMs { 60.0 };
     std::atomic<int> defaultVelocity { 90 };
 

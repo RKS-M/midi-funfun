@@ -50,6 +50,10 @@ public:
     void setMetronomeEnabled(bool enabled) { metronomeEnabled.store(enabled, std::memory_order_relaxed); }
     bool getMetronomeEnabled() const { return metronomeEnabled.load(std::memory_order_relaxed); }
 
+    /** 入力を出力へパススルーするモニタリング。フィードバックループ防止のため既定でOFF。 */
+    void setMonitoringEnabled(bool enabled) { monitoringEnabled.store(enabled, std::memory_order_relaxed); }
+    bool getMonitoringEnabled() const { return monitoringEnabled.load(std::memory_order_relaxed); }
+
     void setCountInBeats(int beats) { countInBeats.store(beats, std::memory_order_relaxed); }
     int getCountInBeats() const { return countInBeats.load(std::memory_order_relaxed); }
 
@@ -66,6 +70,7 @@ private:
     std::atomic<double> bpm { 120.0 };
     std::atomic<bool> metronomeEnabled { true };
     std::atomic<int> countInBeats { 4 };
+    std::atomic<bool> monitoringEnabled { false };
 
     double currentSampleRate = 44100.0;
 

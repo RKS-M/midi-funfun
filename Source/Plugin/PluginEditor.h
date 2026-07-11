@@ -48,6 +48,7 @@ private:
     juce::Slider bpmSlider;
 
     juce::ToggleButton metronomeToggle;
+    juce::ToggleButton monitoringToggle;
 
     juce::Label countInLabel;
     juce::Slider countInSlider;

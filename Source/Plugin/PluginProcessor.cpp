@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "Audio/MonitoringPassthrough.h"
+
 namespace
 {
     constexpr float clickFrequencyHz = 1500.0f;
@@ -82,10 +84,11 @@ void MidiFunfunAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
             recordingTransport.stopRecording();
     }
 
-    // モニタリング: 入力(チャンネル0)を全出力チャンネルへパススルーする。
-    // チャンネル0は入出力が同一バッファのため既に入力値が入っている。
-    for (int ch = 1; ch < numOutputChannels; ++ch)
-        buffer.copyFrom(ch, 0, inputData, numSamples);
+    // モニタリング: 有効時のみ入力(チャンネル0)を全出力チャンネルへパススルーする。
+    // 無効時は全チャンネルを無音化する(チャンネル0の入出力バッファエイリアシングによる
+    // 暗黙のパススルーも打ち消し、フィードバックループを避けるため)。
+    midi_funfun::core::applyMonitoring(buffer.getArrayOfWritePointers(), numOutputChannels, numSamples,
+                                        monitoringEnabled.load(std::memory_order_relaxed));
 
     for (const int offset : advance.clickSampleOffsets)
         if (offset >= 0 && offset < numSamples)

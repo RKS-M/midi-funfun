@@ -58,6 +58,13 @@ MidiFunfunAudioProcessorEditor::MidiFunfunAudioProcessorEditor(MidiFunfunAudioPr
     metronomeToggle.onClick = [this] { processorRef.setMetronomeEnabled(metronomeToggle.getToggleState()); };
     addAndMakeVisible(metronomeToggle);
 
+    // 既定でOFF: 入力を出力へパススルーするとスピーカー環境ではフィードバックループの
+    // 恐れがあるため、モニタリングはユーザーの明示的なオプトインとする。
+    monitoringToggle.setButtonText("Monitoring");
+    monitoringToggle.setToggleState(processorRef.getMonitoringEnabled(), juce::dontSendNotification);
+    monitoringToggle.onClick = [this] { processorRef.setMonitoringEnabled(monitoringToggle.getToggleState()); };
+    addAndMakeVisible(monitoringToggle);
+
     countInLabel.setText("Count-in", juce::dontSendNotification);
     addAndMakeVisible(countInLabel);
 
@@ -87,7 +94,15 @@ MidiFunfunAudioProcessorEditor::MidiFunfunAudioProcessorEditor(MidiFunfunAudioPr
     settingsButton.setVisible(processorRef.wrapperType == juce::AudioProcessor::wrapperType_Standalone);
     addAndMakeVisible(settingsButton);
 
-    setSize(760, 480);
+#if JucePlugin_Build_Standalone
+    // JUCEのStandaloneラッパーは入出力チャンネルを持つプロセッサ(=フィードバックの可能性)を
+    // 検出すると入力を既定でミュートする安全機能を持つ。モニタリングは既定OFFで
+    // フィードバックの実害が無いため、起動時に自動でミュート解除する。
+    if (auto* holder = juce::StandalonePluginHolder::getInstance())
+        holder->getMuteInputValue().setValue(false);
+#endif
+
+    setSize(880, 480);
     startTimerHz(30);
 }
 
@@ -111,6 +126,8 @@ void MidiFunfunAudioProcessorEditor::resized()
     toolbar.removeFromLeft(10);
     countInLabel.setBounds(toolbar.removeFromLeft(70));
     countInSlider.setBounds(toolbar.removeFromLeft(110));
+    toolbar.removeFromLeft(10);
+    monitoringToggle.setBounds(toolbar.removeFromLeft(110));
     toolbar.removeFromLeft(10);
     recordButton.setBounds(toolbar.removeFromLeft(100));
     toolbar.removeFromLeft(10);

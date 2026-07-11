@@ -121,6 +121,15 @@ namespace midi_funfun::core
         return take.sampleRate > 0.0 ? static_cast<double>(take.numSamplesRecorded) / take.sampleRate : 0.0;
     }
 
+    const Take* TakeManager::getTake(int index) const
+    {
+        const juce::ScopedLock sl(lock);
+        if (index < 0 || index >= static_cast<int>(takes.size()))
+            return nullptr;
+
+        return &takes[static_cast<size_t>(index)];
+    }
+
     size_t TakeManager::getTotalBytesUsed() const
     {
         const juce::ScopedLock sl(lock);

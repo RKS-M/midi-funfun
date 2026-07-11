@@ -10,6 +10,17 @@ add_library(midi_funfun_core STATIC
     Audio/Metronome.cpp
     Audio/RecordingTransport.h
     Audio/RecordingTransport.cpp
+    Model/Note.h
+    Model/NoteSequence.h
+    Model/NoteSequence.cpp
+    Pitch/YinPitchDetector.h
+    Pitch/YinPitchDetector.cpp
+    Pitch/NoteSegmenter.h
+    Pitch/NoteSegmenter.cpp
+    Pitch/OctaveErrorCorrector.h
+    Pitch/OctaveErrorCorrector.cpp
+    Pitch/PitchAnalyzer.h
+    Pitch/PitchAnalyzer.cpp
 )
 
 target_include_directories(midi_funfun_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

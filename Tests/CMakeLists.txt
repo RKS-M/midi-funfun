@@ -5,6 +5,11 @@ add_executable(MidiFunfunTests
     MetronomeTests.cpp
     RecordingTransportTests.cpp
     MonitoringPassthroughTests.cpp
+    NoteSequenceTests.cpp
+    YinPitchDetectorTests.cpp
+    NoteSegmenterTests.cpp
+    OctaveErrorCorrectorTests.cpp
+    PitchAnalyzerTests.cpp
 )
 
 target_link_libraries(MidiFunfunTests PRIVATE

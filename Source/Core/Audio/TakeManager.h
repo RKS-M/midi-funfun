@@ -48,6 +48,9 @@ namespace midi_funfun::core
         /** 指定テイクの録音済み長さ(秒)。GUIスレッドからのテイク一覧表示用。 */
         double getTakeLengthSeconds(int index) const;
 
+        /** 指定インデックスのTakeへの参照を返す。範囲外ならnullptr。解析(GUIスレッド)用の読み取り専用アクセス。 */
+        const Take* getTake(int index) const;
+
         size_t getTotalBytesUsed() const;
 
     private:

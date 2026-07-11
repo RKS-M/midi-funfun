@@ -8,6 +8,8 @@
 #include "Audio/PeakLevelTracker.h"
 #include "Audio/RecordingTransport.h"
 #include "Audio/TakeManager.h"
+#include "Model/NoteSequence.h"
+#include "Pitch/PitchAnalyzer.h"
 
 class MidiFunfunAudioProcessor final : public juce::AudioProcessor
 {
@@ -61,6 +63,22 @@ public:
     const midi_funfun::core::PeakLevelTracker& getPeakLevelTracker() const { return peakLevelTracker; }
     midi_funfun::core::TakeManager& getTakeManager() { return takeManager; }
 
+    // --- Pitch analysis controls, called from the GUI/message thread ---
+
+    void setNoiseGateSensitivity(double percent) { noiseGateSensitivity.store(percent, std::memory_order_relaxed); }
+    double getNoiseGateSensitivity() const { return noiseGateSensitivity.load(std::memory_order_relaxed); }
+
+    void setMinNoteLengthMs(double ms) { minNoteLengthMs.store(ms, std::memory_order_relaxed); }
+    double getMinNoteLengthMs() const { return minNoteLengthMs.load(std::memory_order_relaxed); }
+
+    void setDefaultVelocity(int velocity) { defaultVelocity.store(velocity, std::memory_order_relaxed); }
+    int getDefaultVelocity() const { return defaultVelocity.load(std::memory_order_relaxed); }
+
+    /** 現在選択中のTakeを解析し、結果をanalyzedNotesへ格納する。選択中テイクが無ければ何もしない。 */
+    void analyzeSelectedTake();
+    const midi_funfun::core::NoteSequence& getAnalyzedNotes() const { return analyzedNotes; }
+    double getAnalyzedNotesBpm() const { return analyzedNotesBpm; }
+
 private:
     midi_funfun::core::PeakLevelTracker peakLevelTracker;
     midi_funfun::core::TakeManager takeManager;
@@ -71,6 +89,13 @@ private:
     std::atomic<bool> metronomeEnabled { true };
     std::atomic<int> countInBeats { 4 };
     std::atomic<bool> monitoringEnabled { false };
+
+    std::atomic<double> noiseGateSensitivity { 50.0 }; // 0-100%
+    std::atomic<double> minNoteLengthMs { 60.0 };
+    std::atomic<int> defaultVelocity { 90 };
+
+    midi_funfun::core::NoteSequence analyzedNotes;
+    double analyzedNotesBpm = 120.0; // analyzeSelectedTake()実行時点のBPM(メッセージスレッド専用、GUIから直接読むだけなのでatomic不要)
 
     double currentSampleRate = 44100.0;
 

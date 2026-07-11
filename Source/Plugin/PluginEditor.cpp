@@ -16,6 +16,33 @@ namespace
         const int totalSeconds = (int) seconds;
         return juce::String::formatted("%d:%02d", totalSeconds / 60, totalSeconds % 60);
     }
+
+    double ticksToSeconds(juce::int64 ticks, double bpm)
+    {
+        return (double) ticks / ((bpm / 60.0) * (double) midi_funfun::core::ticksPerQuarterNote);
+    }
+}
+
+int MidiFunfunAudioProcessorEditor::NoteListBoxModel::getNumRows()
+{
+    return processor.getAnalyzedNotes().size();
+}
+
+void MidiFunfunAudioProcessorEditor::NoteListBoxModel::paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected)
+{
+    if (rowIsSelected)
+        g.fillAll(juce::Colours::lightblue);
+
+    const auto& note = processor.getAnalyzedNotes()[rowNumber];
+    const double bpm = processor.getAnalyzedNotesBpm();
+    const double startSeconds = ticksToSeconds(note.startTick, bpm);
+    const double lengthSeconds = ticksToSeconds(note.lengthTicks, bpm);
+
+    const auto pitchName = juce::MidiMessage::getMidiNoteName(note.pitch, true, true, 4);
+    const auto text = juce::String::formatted("%-4s %6.2fs %6.2fs", pitchName.toRawUTF8(), startSeconds, lengthSeconds);
+
+    g.setColour(juce::Colours::black);
+    g.drawText(text, 4, 0, width - 8, height, juce::Justification::centredLeft);
 }
 
 void MidiFunfunAudioProcessorEditor::LevelMeter::paint(juce::Graphics& g)
@@ -94,6 +121,43 @@ MidiFunfunAudioProcessorEditor::MidiFunfunAudioProcessorEditor(MidiFunfunAudioPr
     settingsButton.setVisible(processorRef.wrapperType == juce::AudioProcessor::wrapperType_Standalone);
     addAndMakeVisible(settingsButton);
 
+    analyzeButton.setButtonText("Analyze");
+    analyzeButton.onClick = [this] { analyzeButtonClicked(); };
+    addAndMakeVisible(analyzeButton);
+
+    noiseGateLabel.setText("Noise Gate", juce::dontSendNotification);
+    addAndMakeVisible(noiseGateLabel);
+
+    noiseGateSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    noiseGateSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 50, 20);
+    noiseGateSlider.setRange(0.0, 100.0, 1.0);
+    noiseGateSlider.setValue(processorRef.getNoiseGateSensitivity(), juce::dontSendNotification);
+    noiseGateSlider.onValueChange = [this] { processorRef.setNoiseGateSensitivity(noiseGateSlider.getValue()); };
+    addAndMakeVisible(noiseGateSlider);
+
+    minNoteLengthLabel.setText("Min Note Len", juce::dontSendNotification);
+    addAndMakeVisible(minNoteLengthLabel);
+
+    minNoteLengthSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    minNoteLengthSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 50, 20);
+    minNoteLengthSlider.setRange(0.0, 300.0, 1.0);
+    minNoteLengthSlider.setValue(processorRef.getMinNoteLengthMs(), juce::dontSendNotification);
+    minNoteLengthSlider.onValueChange = [this] { processorRef.setMinNoteLengthMs(minNoteLengthSlider.getValue()); };
+    addAndMakeVisible(minNoteLengthSlider);
+
+    defaultVelocityLabel.setText("Velocity", juce::dontSendNotification);
+    addAndMakeVisible(defaultVelocityLabel);
+
+    defaultVelocitySlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    defaultVelocitySlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 50, 20);
+    defaultVelocitySlider.setRange(1.0, 127.0, 1.0);
+    defaultVelocitySlider.setValue(processorRef.getDefaultVelocity(), juce::dontSendNotification);
+    defaultVelocitySlider.onValueChange = [this] { processorRef.setDefaultVelocity((int) defaultVelocitySlider.getValue()); };
+    addAndMakeVisible(defaultVelocitySlider);
+
+    noteListBox.setRowHeight(20);
+    addAndMakeVisible(noteListBox);
+
 #if JucePlugin_Build_Standalone
     // JUCEのStandaloneラッパーは入出力チャンネルを持つプロセッサ(=フィードバックの可能性)を
     // 検出すると入力を既定でミュートする安全機能を持つ。モニタリングは既定OFFで
@@ -102,7 +166,7 @@ MidiFunfunAudioProcessorEditor::MidiFunfunAudioProcessorEditor(MidiFunfunAudioPr
         holder->getMuteInputValue().setValue(false);
 #endif
 
-    setSize(880, 480);
+    setSize(980, 540);
     startTimerHz(30);
 }
 
@@ -133,15 +197,34 @@ void MidiFunfunAudioProcessorEditor::resized()
     toolbar.removeFromLeft(10);
     settingsButton.setBounds(toolbar.removeFromLeft(90));
 
+    area.removeFromTop(6);
+    auto analysisToolbar = area.removeFromTop(40);
+    analyzeButton.setBounds(analysisToolbar.removeFromLeft(90));
+    analysisToolbar.removeFromLeft(10);
+    noiseGateLabel.setBounds(analysisToolbar.removeFromLeft(80));
+    noiseGateSlider.setBounds(analysisToolbar.removeFromLeft(150));
+    analysisToolbar.removeFromLeft(10);
+    minNoteLengthLabel.setBounds(analysisToolbar.removeFromLeft(90));
+    minNoteLengthSlider.setBounds(analysisToolbar.removeFromLeft(150));
+    analysisToolbar.removeFromLeft(10);
+    defaultVelocityLabel.setBounds(analysisToolbar.removeFromLeft(60));
+    defaultVelocitySlider.setBounds(analysisToolbar.removeFromLeft(150));
+
     area.removeFromTop(10);
     levelMeter.setBounds(area.removeFromTop(24));
 
     area.removeFromTop(10);
-    auto deleteButtonArea = area.removeFromBottom(30);
-    deleteTakeButton.setBounds(deleteButtonArea.removeFromLeft(120));
 
-    area.removeFromBottom(6);
-    takeListBox.setBounds(area);
+    auto notesArea = area.removeFromRight(area.getWidth() / 2);
+    area.removeFromRight(10);
+    auto takesArea = area;
+
+    auto deleteButtonArea = takesArea.removeFromBottom(30);
+    deleteTakeButton.setBounds(deleteButtonArea.removeFromLeft(120));
+    takesArea.removeFromBottom(6);
+    takeListBox.setBounds(takesArea);
+
+    noteListBox.setBounds(notesArea);
 }
 
 int MidiFunfunAudioProcessorEditor::getNumRows()
@@ -205,6 +288,13 @@ void MidiFunfunAudioProcessorEditor::deleteButtonClicked()
         processorRef.getTakeManager().deleteTake(selected);
 
     takeListBox.updateContent();
+}
+
+void MidiFunfunAudioProcessorEditor::analyzeButtonClicked()
+{
+    processorRef.analyzeSelectedTake();
+    noteListBox.updateContent();
+    noteListBox.repaint();
 }
 
 void MidiFunfunAudioProcessorEditor::settingsButtonClicked()

@@ -108,6 +108,27 @@ void MidiFunfunAudioProcessor::stopRecording()
     recordingTransport.stopRecording();
 }
 
+void MidiFunfunAudioProcessor::analyzeSelectedTake()
+{
+    const int selectedIndex = takeManager.getSelectedTakeIndex();
+    const auto* take = takeManager.getTake(selectedIndex);
+    if (take == nullptr)
+        return;
+
+    midi_funfun::core::PitchAnalyzer::Settings settings;
+    // ノイズゲート感度(0-100%)をRMSしきい値へ線形マッピングする。
+    // 0%->0.0(ゲートしない)、100%->0.2(YinPitchDetectorのRMSは概ね0-1程度のオーディオ
+    // 振幅を想定しており、0.2は十分強いゲート)。
+    settings.segmenter.noiseGateRmsThreshold = (noiseGateSensitivity.load(std::memory_order_relaxed) / 100.0) * 0.2;
+    settings.segmenter.minNoteLengthSeconds = minNoteLengthMs.load(std::memory_order_relaxed) / 1000.0;
+    settings.bpm = bpm.load(std::memory_order_relaxed);
+    settings.defaultVelocity = defaultVelocity.load(std::memory_order_relaxed);
+
+    midi_funfun::core::PitchAnalyzer analyzer(settings);
+    analyzedNotes = analyzer.analyze(*take);
+    analyzedNotesBpm = settings.bpm;
+}
+
 juce::AudioProcessorEditor* MidiFunfunAudioProcessor::createEditor()
 {
     return new MidiFunfunAudioProcessorEditor(*this);

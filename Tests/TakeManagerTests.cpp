@@ -89,3 +89,21 @@ TEST_CASE("TakeManager tracks selection across deletes", "[core][audio][takemana
     REQUIRE(manager.getNumTakes() == 1);
     REQUIRE(manager.getSelectedTakeIndex() == 0);
 }
+
+TEST_CASE("TakeManager::getTake returns a pointer for valid indices and nullptr otherwise", "[core][audio][takemanager]")
+{
+    TakeManager manager(10'000, 1.0);
+    std::vector<float> block(10, 0.1f);
+
+    REQUIRE(manager.startNewTake(10.0));
+    manager.appendToCurrentTake(block.data(), (int) block.size());
+    manager.finishRecording();
+
+    REQUIRE(manager.getTake(-1) == nullptr);
+    REQUIRE(manager.getTake(1) == nullptr); // only index 0 exists
+
+    const auto* take = manager.getTake(0);
+    REQUIRE(take != nullptr);
+    REQUIRE(take->numSamplesRecorded == 10);
+    REQUIRE(take->sampleRate == 10.0);
+}
